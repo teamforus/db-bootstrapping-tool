@@ -17,3 +17,16 @@ src/actions/ stores actions for automated scenarios could be
 parametrized based on the scenario requirements.
 
 src/index.ts is an express web-server.
+
+COMMANDS
+
+npm run db:local:start
+Will start local mysql server in a docker container running on
+localhost:3306 with adminer web-ui on :8080
+
+npm run db:local:init
+Will source db schema to demoForus database
+
+npm start
+Will start local web server, which will be reloaded upon file
+modifications typescript files
