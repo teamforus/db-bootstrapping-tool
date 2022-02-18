@@ -1,0 +1,26 @@
+{
+  "name": "forus-db-bootstrapping-tool",
+  "private": true,
+  "version": "0.0.1",
+  "license": "AGPL-3.0-only",
+  "scripts": {
+    "start": "node -r ts-node/register src/index.ts",
+    "start:debug": "node -r ts-node/register --inspect-brk src/index.ts",
+    "db:local:start": "docker-compose -f docker-compose.yml up",
+    "db:local:init": "mysql -uroot -pexample -h 127.0.0.1 -e 'source db-setup.sql'",
+    "db:local:console": "mysql -uroot -pexample -h 127.0.0.1 demoForus"
+  },
+  "dependencies": {
+    "mysql2": "^2.3.3",
+    "ts-node": "^10.5.0"
+  },
+  "devDependencies": {
+    "prettier": "^2.5.1",
+    "typescript": "^4.5.5"
+  },
+  "prettier": {
+    "tabWidth": 2,
+    "singleQuote": true,
+    "arrowParens": "avoid"
+  }
+}
