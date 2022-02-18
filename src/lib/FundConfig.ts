@@ -1,7 +1,7 @@
 import { insert } from './db/insert';
 import { update } from './db/update';
 
-type FundConfig = {
+export type FundConfig = {
   fundId: number;
   implementationId: number;
   isConfigured: number;

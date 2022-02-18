@@ -1,74 +1,60 @@
-import mysql from 'mysql2/promise';
-import { insertFund } from './lib/Fund';
-import { insertFundCriteria } from './lib/FundCriteria';
-import { logInsertResults } from './lib/db/insert';
-import { insertRecordType } from './lib/RecordType';
-import {
-  insertFundConfig,
-  updateIsConfiguredFundConfig,
-} from './lib/FundConfig';
-import { logUpdateResults } from './lib/db/update';
+import express from 'express';
+import { createFund, isCreateFundError } from './actions/createFund';
 
-(async () => {
-  // create the connection to database
-  const mysqlConnection = await mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: 'example',
-    database: 'demoForus',
-  });
+const webApp = express();
+const port = Number(process.env.PORT ?? '3000');
 
-  console.log('          START TRANSACTION');
-  await mysqlConnection.beginTransaction();
+webApp.get('/createFund', async (req, res, next) => {
+  const organizationId = Number(req.query.organizationId);
+  const name = String(req.query.name);
 
   try {
-    const fundResult = await insertFund(mysqlConnection, {
-      organizationId: 1,
-      name: 'test',
-      externalLinkText: 'sample external link text',
-    });
-    logInsertResults(fundResult);
-
-    const fundCriteriaResult = await insertFundCriteria(mysqlConnection, {
-      fundId: fundResult.rowId,
-      description: 'sample description',
-    });
-    logInsertResults(fundCriteriaResult);
-
-    const recordTypeChildrenResult = await insertRecordType(mysqlConnection, {
-      key: 'children_nth',
-      type: 'number',
-    });
-    logInsertResults(recordTypeChildrenResult);
-
-    const recordTypeGenderResult = await insertRecordType(mysqlConnection, {
-      key: 'gender',
-      type: 'string',
-    });
-    logInsertResults(recordTypeGenderResult);
-
-    const fundConfigResult = await insertFundConfig(mysqlConnection, {
-      fundId: fundResult.rowId,
-      implementationId: 1,
-      isConfigured: 0,
-    });
-    logInsertResults(fundConfigResult);
-
-    const updateFundConfigResult = await updateIsConfiguredFundConfig(
-      mysqlConnection,
-      fundConfigResult.rowId,
-      { isConfigured: 1 }
-    );
-    logUpdateResults(updateFundConfigResult);
-
-    console.log('          COMMIT');
-    await mysqlConnection.commit();
+    const logger = await createFund({ organizationId, name });
+    res.setHeader('Content-Type', 'text/plain');
+    res.send(logger.logs.join('\n'));
   } catch (error) {
-    console.log('          ROLLBACK');
-    await mysqlConnection.rollback();
-    mysqlConnection.end();
-    throw error;
+    if (isCreateFundError(error)) {
+      res.setHeader('Content-Type', 'text/plain');
+      res.send(error.logger.logs.join('\n') + '\n\n' + String(error.error));
+    } else {
+      next(error);
+    }
   }
+});
 
-  mysqlConnection.end();
-})();
+webApp.get('/', (req, res) => {
+  res.setHeader('Content-Type', 'text/html');
+  res.send(`
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>db bootstrapping tool</title>
+  </head>
+  <body>
+    <h1>Setup fund</h1>
+    <form action="/createFund" method="GET">
+      <p>
+        <label>
+          Organization ID:
+          <input name="organizationId" type="number">
+        </label>
+      </p>
+      <p>
+        <label>
+          Fund name:
+          <input name="name" type="text">
+        </label>
+      </p>
+      <p>
+        <input type="submit">
+      </p>
+    </form>
+  </body>
+</html>  
+  `);
+});
+
+webApp.listen(port, () => {
+  console.log(`listening on :${port}`);
+});

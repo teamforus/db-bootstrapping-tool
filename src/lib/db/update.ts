@@ -1,10 +1,5 @@
 import mysql from 'mysql2/promise';
 
-type DBUpdateResult = {
-  rowId: number;
-  query: string;
-};
-
 /**
  * @param preparedStatement prepared SQL statement with the placeholders
  * @param extractParams function to extract placeholders to respective positions
@@ -15,26 +10,24 @@ export function update<T>(
   extractParams: (obj: T) => Array<unknown>
 ): (
   mysqlConnection: mysql.Connection,
+  logger: (...msgs: unknown[]) => void,
   updateRowId: number,
   updateObject: T
-) => Promise<DBUpdateResult> {
-  return async function (mysqlConnection, updateRowId, updateObject) {
+) => Promise<void> {
+  return async function (mysqlConnection, logger, updateRowId, updateObject) {
     const sql = mysqlConnection.format(preparedStatement, [
       ...extractParams(updateObject),
       // would be the last param
       updateRowId,
     ]);
-    const [row]: [mysql.ResultSetHeader, unknown] = await mysqlConnection.query(
-      sql
-    );
 
-    return {
-      rowId: row.insertId,
-      query: sql,
-    };
+    try {
+      await mysqlConnection.query(sql);
+    } catch (error) {
+      logger(`    failed: ${sql}`);
+      throw error;
+    }
+
+    logger(`          ${sql}`);
   };
-}
-
-export function logUpdateResults(result: DBUpdateResult): void {
-  console.log(`          ${result.query}`);
 }

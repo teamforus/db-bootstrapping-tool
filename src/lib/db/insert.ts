@@ -2,7 +2,6 @@ import mysql from 'mysql2/promise';
 
 type DBInsertResult = {
   rowId: number;
-  query: string;
 };
 
 /**
@@ -15,25 +14,28 @@ export function insert<T>(
   extractParams: (obj: T) => Array<unknown>
 ): (
   mysqlConnection: mysql.Connection,
+  logger: (...msgs: unknown[]) => void,
   insertObject: T
 ) => Promise<DBInsertResult> {
-  return async function (mysqlConnection, insertObject) {
+  return async function (mysqlConnection, logger, insertObject) {
     const sql = mysqlConnection.format(
       preparedStatement,
       extractParams(insertObject)
     );
-    const [row]: [mysql.ResultSetHeader, unknown] = await mysqlConnection.query(
-      sql
-    );
 
-    return {
-      rowId: row.insertId,
-      query: sql,
-    };
+    let row: mysql.ResultSetHeader;
+    try {
+      const result: [mysql.ResultSetHeader, unknown] =
+        await mysqlConnection.query(sql);
+      row = result[0];
+    } catch (error) {
+      logger(`!!FAILED: ${sql}`);
+      throw error;
+    }
+
+    const prefix = ('#' + row.insertId).padStart(8, ' ');
+    logger(`${prefix}: ${sql}`);
+
+    return { rowId: row.insertId };
   };
-}
-
-export function logInsertResults(result: DBInsertResult): void {
-  const prefix = ('#' + result.rowId).padStart(8, ' ');
-  console.log(`${prefix}: ${result.query}`);
 }

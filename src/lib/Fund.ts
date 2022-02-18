@@ -1,6 +1,6 @@
 import { insert } from './db/insert';
 
-type Fund = {
+export type Fund = {
   organizationId: number;
   name: string;
   externalLinkText: string;

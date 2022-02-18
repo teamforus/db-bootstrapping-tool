@@ -1,6 +1,6 @@
 import { insert } from './db/insert';
 
-type FundFormula = {
+export type FundFormula = {
   fundId: number;
   type: 'empty' | 'multiply' | 'fixed';
   amount: number;

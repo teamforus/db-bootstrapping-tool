@@ -19,7 +19,7 @@ SET time_zone = "+00:00";
 --
 -- Database: `demoForus`
 --
-drop database demoForus;
+drop database if exists demoForus;
 CREATE DATABASE IF NOT EXISTS `demoForus` DEFAULT CHARACTER SET latin1 COLLATE latin1_swedish_ci;
 USE `demoForus`;
 
