@@ -1,0 +1,19 @@
+Node v16 is used for this project.
+
+DB Bootsrapping tool, a framework for automating the process of
+seeding db with mock/test data.
+
+docker & docker-compose are utilized for local development.
+
+db-setup.sql is a schema of the mysql database on the demo stand, with
+manual adjustments applied to disable constraints on some of the
+tables.
+
+src/lib/db/ stores high order helpers to create inserters/updaters for
+db entities.
+src/lib/ stores inserters/updaters for the specific db entities.
+
+src/actions/ stores actions for automated scenarios could be
+parametrized based on the scenario requirements.
+
+src/index.ts is an express web-server.
