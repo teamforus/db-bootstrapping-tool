@@ -16,6 +16,7 @@ webApp.get('/createFund', async (req, res, next) => {
     if (isCreateFundError(error)) {
       res.setHeader('Content-Type', 'text/plain');
       res.send(error.logger.logs.join('\n') + '\n\n' + String(error.error));
+      console.log(error.error);
     } else {
       next(error);
     }
