@@ -1,8 +1,11 @@
 import mysql from 'mysql2/promise';
+import { Logger } from '../../Logger';
 
 type DBInsertResult = {
   rowId: number;
 };
+
+export type InsertFunc<T> = (insertObject: T) => Promise<DBInsertResult>;
 
 /**
  * @param preparedStatement prepared SQL statement with the placeholders
@@ -10,15 +13,13 @@ type DBInsertResult = {
  * @returns async function to insert object in the database
  */
 // there is annotated example of use at ../FundConfig.ts
-export function insert<T>(
-  preparedStatement: string,
-  extractParams: (obj: T) => Array<unknown>
-): (
-  mysqlConnection: mysql.Connection,
-  logger: (...msgs: unknown[]) => void,
-  insertObject: T
-) => Promise<DBInsertResult> {
-  return async function (mysqlConnection, logger, insertObject) {
+export const insert =
+  <T>(
+    preparedStatement: string,
+    extractParams: (obj: T) => Array<unknown>
+  ): ((mysqlConnection: mysql.Connection, logger: Logger) => InsertFunc<T>) =>
+  (mysqlConnection, logger) =>
+  async insertObject => {
     const sql = mysqlConnection.format(
       preparedStatement,
       extractParams(insertObject)
@@ -30,13 +31,12 @@ export function insert<T>(
         await mysqlConnection.query(sql);
       row = result[0];
     } catch (error) {
-      logger(`!!FAILED: ${sql}`);
+      logger.log(`!!FAILED: ${sql}`);
       throw error;
     }
 
     const prefix = ('#' + row.insertId).padStart(8, ' ');
-    logger(`${prefix}: ${sql}`);
+    logger.log(`${prefix}: ${sql}`);
 
     return { rowId: row.insertId };
   };
-}

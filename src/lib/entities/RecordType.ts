@@ -1,4 +1,4 @@
-import { insert } from './db/insert';
+import { insert } from '../db/insert';
 
 export type RecordTypeChildrenNth = {
   key: 'children_nth';
@@ -12,7 +12,7 @@ export type RecordTypeGender = {
 
 export type RecordType = RecordTypeChildrenNth | RecordTypeGender;
 
-export const insertRecordType = insert<RecordType>(
+export const insertRecordTypeWrapped = insert<RecordType>(
   'INSERT INTO `record_types` (`key`, `type`) VALUES (?, ?)',
   recordType => [recordType.key, recordType.type]
 );

@@ -1,4 +1,10 @@
 import mysql from 'mysql2/promise';
+import { Logger } from '../../Logger';
+
+export type UpdateFunc<T> = (
+  updateRowId: number,
+  updateObject: T
+) => Promise<void>;
 
 /**
  * @param preparedStatement prepared SQL statement with the placeholders
@@ -6,16 +12,13 @@ import mysql from 'mysql2/promise';
  * @returns async function to update object in the database
  */
 // there is annotated example of use at ../FundConfig.ts
-export function update<T>(
-  preparedStatement: string,
-  extractParams: (obj: T) => Array<unknown>
-): (
-  mysqlConnection: mysql.Connection,
-  logger: (...msgs: unknown[]) => void,
-  updateRowId: number,
-  updateObject: T
-) => Promise<void> {
-  return async function (mysqlConnection, logger, updateRowId, updateObject) {
+export const update =
+  <T>(
+    preparedStatement: string,
+    extractParams: (obj: T) => Array<unknown>
+  ): ((mysqlConnection: mysql.Connection, logger: Logger) => UpdateFunc<T>) =>
+  (mysqlConnection, logger) =>
+  async (updateRowId, updateObject) => {
     const sql = mysqlConnection.format(preparedStatement, [
       ...extractParams(updateObject),
       // would be the last param
@@ -25,10 +28,9 @@ export function update<T>(
     try {
       await mysqlConnection.query(sql);
     } catch (error) {
-      logger(`    failed: ${sql}`);
+      logger.log(`    failed: ${sql}`);
       throw error;
     }
 
-    logger(`          ${sql}`);
+    logger.log(`          ${sql}`);
   };
-}

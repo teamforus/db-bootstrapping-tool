@@ -1,4 +1,4 @@
-import { insert } from './db/insert';
+import { insert } from '../db/insert';
 
 export type FundFormula = {
   fundId: number;
@@ -6,7 +6,7 @@ export type FundFormula = {
   amount: number;
 };
 
-export const insertFundFormula = insert<FundFormula>(
+export const insertFundFormulaWrapped = insert<FundFormula>(
   'INSERT INTO `fund_formula` (`fund_id`, `type`, `amount`) VALUES (?, ?, ?)',
   fundFormula => [fundFormula.fundId, fundFormula.type, fundFormula.amount]
 );
