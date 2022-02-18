@@ -9,6 +9,7 @@ type DBInsertResult = {
  * @param extractParams function to extract placeholders to respective positions
  * @returns async function to insert object in the database
  */
+// there is annotated example of use at ../FundConfig.ts
 export function insert<T>(
   preparedStatement: string,
   extractParams: (obj: T) => Array<unknown>
